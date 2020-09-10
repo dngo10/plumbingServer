@@ -1,0 +1,11 @@
+{
+    "client_id": "0c0b0622-f612-41a6-874c-b5182b5183f1",
+    "host": "https://login.microsoftonline.com",
+    "tenant": "common",
+    "scope": "profile%20openid%20email",
+    "redirect_uri": "http://localhost:8080/",
+    "after_tenant": "oauth2/v2.0/token",
+    "client_secret": ".E52-2~MYp_-OSuW9FgRfKurta5JgIlHGN"
+}
+
+

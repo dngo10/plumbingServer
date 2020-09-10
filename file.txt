@@ -1,0 +1,6 @@
+{
+    "username": "bob",
+    "password": "passworld",
+    "dog": "gâu gâu",
+    "name": "binz và karik"
+}
