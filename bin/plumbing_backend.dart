@@ -1,6 +1,6 @@
 import 'dart:io' as io;
-import 'MicrosoftAuth2/handleMicrosoftAuth2.dart';
-import 'MicrosoftAuth2/microsoftOauth2.dart';
+import 'Auth2/MicrosoftAuth2/handleMicrosoftAuth2.dart';
+import 'Auth2/MicrosoftAuth2/microsoftOauth2.dart';
 
 Future main() async{
   String _host = io.InternetAddress.loopbackIPv4.host;

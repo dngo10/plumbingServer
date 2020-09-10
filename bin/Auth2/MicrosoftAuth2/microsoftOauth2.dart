@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import '../../JsonData/GetData.dart' as GetData;
+import '../../../JsonData/GetData.dart' as GetData;
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
