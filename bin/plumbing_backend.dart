@@ -1,18 +1,17 @@
 import 'dart:io' as io;
-import 'Auth2/MicrosoftAuth2/handleMicrosoftAuth2.dart';
-import 'Auth2/MicrosoftAuth2/microsoftOauth2.dart';
+
+import 'Auth2/user-information.dart';
 
 Future main() async{
   String _host = io.InternetAddress.loopbackIPv4.host;
-  MicrosoftOAuth2 msAuth = MicrosoftOAuth2();
-  await msAuth.init();
+
   io.HttpServer server = await io.HttpServer.bind(_host, 4040);
   await for (io.HttpRequest request in server){
-    handleRequest(request, msAuth);
+    handleRequest(request);
   }
 }
 
-void handleRequest(io.HttpRequest request, MicrosoftOAuth2 msAuth) async{
+void handleRequest(io.HttpRequest request) async{
   io.HttpResponse response = request.response;
   
   try{
@@ -22,11 +21,11 @@ void handleRequest(io.HttpRequest request, MicrosoftOAuth2 msAuth) async{
       response.headers.add("Access-Control-Allow-Methods", "POST,GET,DELETE,PUT,OPTIONS");
       // oauth2 --- check microsoft login
       if(request.uri.pathSegments.last == "oauth2"){
-        await handleAuth2(request, msAuth);
+        print("get Post request from: ${request.connectionInfo.remoteAddress}");
+        await Users.AddUser(request);
         response.statusCode = io.HttpStatus.ok;
       }else if(request.uri.pathSegments.last == "logout"){
-        await handleLogout(request, msAuth);
-        response.statusCode = io.HttpStatus.ok;
+        //Implement later
       }
     }
   }catch(e){
@@ -35,3 +34,9 @@ void handleRequest(io.HttpRequest request, MicrosoftOAuth2 msAuth) async{
     await response.close();
   }
 }
+
+//Future<void> main() async{
+//  Uri url = Uri.parse("http://localhost:8080/auth2?code=asdfsdf&me=32344");
+//  print(url.pathSegments);
+//  print(url.queryParameters);
+//}

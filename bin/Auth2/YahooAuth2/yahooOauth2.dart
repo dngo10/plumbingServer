@@ -1,38 +1,43 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:crypto/crypto.dart' as crypto;
 
 import '../user-information.dart';
 
-class GoogleOauth2{
-  static String _baseLink = "https://oauth2.googleapis.com/token";
-  static String _revokeLink = "https://oauth2.googleapis.com/revoke?";
-  static String _client_id = '990439782684-t224hulo9aegba964mqluborhhckhi5r.apps.googleusercontent.com';
-  static String _client_secret = "Mjni8nmSayA1A9mrMM9EplJ4";
+class YahooOauth2{
+  static String _baseLink = "https://api.login.yahoo.com/oauth2/get_token";
+  static String _client_id = 'dj0yJmk9Snk0aHdEZVNKRDBDJmQ9WVdrOVVVaHpTM050TjNNbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PTll';
+  static String _client_secret = "5e8a4e1a1edcdd66fcbaf88f68b5ae0a2b3585fb";
+  
 
   static Future<Map> _getAccessToken(String code) async{
+    List<int> bytes = utf8.encode(_client_secret);
+    String base64tr = base64.encode(bytes);
+
     http.Response response = await http.post(_baseLink, headers: {
       "Content-Type" : "application/x-www-form-urlencoded",
+      "Authorization": "Basic ${base64tr}"
     },
-    body: _getAccessBody(code)
+    body: '''
+      code=${code}&
+      client_id=${_client_id}&
+      client_secret=${_client_secret}&
+      redirect_uri=${Users.redirect_uri}&
+      grant_type=authorization_code
+    '''
     );
 
-    print(response.body);
     Map body = jsonDecode(response.body);
     return body;
   }
 
-  static String _getAccessBody(String code){
-    String body = "code=${code}&";
-    body += "client_id=${_client_id}&";
-    body += "client_secret=${_client_secret}&";
-    body += "grant_type=authorization_code&";
-    body += "redirect_uri=${Users.redirect_uri}";
-    return body;
-  }
-
   static Future<Map> _getRefreshToken(UserInformation usr) async{
+    List<int> bytes = utf8.encode(_client_secret);
+    String base64tr = base64.encode(bytes);
+
     http.Response response = await http.post(_baseLink, headers:{
       "Content-Type" : "application/x-www-form-urlencoded",
+      "Authorization": "${base64tr}"
     },
     body: '''
       client_id=${_client_id}&
@@ -57,9 +62,9 @@ class GoogleOauth2{
     String access_token = accessMap["access_token"];
     int expires_in = accessMap["expires_in"];
     String refresh_token = accessMap["refresh_token"];
-    String id_token = accessMap["id_token"];
+    //String id_token = accessMap["id_token"]; // There is no id_token in Yahoo
 
-    String basedUrl = "https://people.googleapis.com/v1/people/me";
+    String basedUrl = "api.login.yahoo.com/openid/v1/userinfo";
     //basedUrl += "?personFields=names,emailAddresses,addresses";
 
     http.Response response = await http.get(basedUrl, headers: {
@@ -73,8 +78,8 @@ class GoogleOauth2{
       return null;
     }
 
-    String email = userInformationMap["emailAddresses"][0]["value"];
-    String name = userInformationMap["names"][0]["displayName"];
+    String email = userInformationMap["email"];
+    String name = userInformationMap["name"];
 
     UserInformation usr = UserInformation();
     usr.creationTime = DateTime.now().toUtc();
@@ -85,7 +90,7 @@ class GoogleOauth2{
     usr.authorizationCode = code;
     usr.vendor = oauth2Vendor.google;
     usr.expires_in = expires_in;
-    usr.id_token = id_token;
+    //usr.id_token = id_token; // There is no id_token
     return usr;
   }
 
