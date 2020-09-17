@@ -100,7 +100,6 @@ class Users{
       }
     }
   }
-
 }
 
 class UserInformation{
