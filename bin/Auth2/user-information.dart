@@ -35,9 +35,38 @@ class Users{
     UserInformation usr = await  _getUser(vendor, code);
     if(usr != null){
       usersMap[code] = usr;
+      print(usr.toJson());
       reponse.write(usr.toJson());
       return true;
     }
+    return false;
+  }
+
+  static Future<bool> RemoveUser(io.HttpRequest request) async{
+    io.HttpResponse response = request.response;
+    String content = await utf8.decodeStream(request);
+    Map map = jsonDecode(content);
+    if(map == null || map.isEmpty || !map.containsKey("code")) return false;
+
+    String code = map["code"];
+    if(usersMap != null && usersMap.containsKey(code)){
+      UserInformation usr = usersMap[code];
+      usr.logOut(request);
+      usersMap.remove(code);
+      Map logOutmap = {
+        "status": "ok",
+        "message": "removed",
+      };
+      response.write(jsonEncode(logOutmap));
+      response.statusCode = io.HttpStatus.ok;
+      return true;
+    }
+    Map logOutmap = {
+        "status": "error",
+        "message": "logout not complete",
+    };
+    response.write(jsonEncode(logOutmap));
+    response.statusCode = io.HttpStatus.notFound;
     return false;
   }
 
@@ -52,6 +81,26 @@ class Users{
     return null;
   }
 
+  static Future<void> CheckUser(io.HttpRequest request) async{
+    Map paras = request.uri.queryParameters;
+    if(paras != null && paras.containsKey("code")){
+      String code = paras["code"];
+      if(usersMap.containsKey(code)){
+        Map map ={
+          "status": "ok",
+          "message": "user found"
+        };
+        request.response.write(jsonEncode(map));
+      }else{
+        Map map = {
+          "status": "error",
+          "message": "cant Find user for code: $code",
+        };
+        request.response.write(jsonEncode(map));
+      }
+    }
+  }
+
 }
 
 class UserInformation{
@@ -63,6 +112,7 @@ class UserInformation{
   String refresh_token;
   int expires_in;
   DateTime creationTime;
+  String status;
   oauth2Vendor vendor;
 
   bool isValid(){
@@ -83,15 +133,27 @@ class UserInformation{
     return false;
   }
 
-  bool logOut(io.HttpRequest request){
-    
+  Future<bool> logOut(io.HttpRequest request) async{
+    if(vendor == oauth2Vendor.google){
+      return await GoogleOauth2.logout(this);
+    }
+    return false;
   }
 
   String toJson(){
+    if((name != null && !name.isEmpty) &&
+       (email != null && !email.isEmpty)){
+         status = "ok";
+    }else{
+      status = "error";
+    }
+
+
     Map temp = {
       "name" : name,
       "email": email,
-      "expires_in": expires_in
+      "expires_in": expires_in,
+      "status": status
     };
 
     return jsonEncode(temp);

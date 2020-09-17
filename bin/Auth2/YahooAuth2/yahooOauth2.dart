@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:crypto/crypto.dart' as crypto;
 
 import '../user-information.dart';
 
@@ -18,13 +17,7 @@ class YahooOauth2{
       "Content-Type" : "application/x-www-form-urlencoded",
       "Authorization": "Basic ${base64tr}"
     },
-    body: '''
-      code=${code}&
-      client_id=${_client_id}&
-      client_secret=${_client_secret}&
-      redirect_uri=${Users.redirect_uri}&
-      grant_type=authorization_code
-    '''
+    body: _getAccessTokenBody(code)
     );
 
     Map body = jsonDecode(response.body);
@@ -39,15 +32,27 @@ class YahooOauth2{
       "Content-Type" : "application/x-www-form-urlencoded",
       "Authorization": "${base64tr}"
     },
-    body: '''
-      client_id=${_client_id}&
-      client_secret=${_client_secret}&
-      refresh_token=${usr.refresh_token}&
-      grant_type=refresh_token
-    '''
+    body: _getRefreshTokenBody(usr)
     );
 
     Map body = jsonDecode(response.body);
+    return body;
+  }
+
+  static String _getRefreshTokenBody(UserInformation usr){
+    String body = "client_id=${_client_id}&";
+    body += "client_secret=${_client_secret}&";
+    body += "refresh_token=${usr.refresh_token}&";
+    body += "grant_type=refresh_token";
+    return body;
+  }
+
+  static String _getAccessTokenBody(String code){
+    String body = "code=${code}&";
+    body += "client_id=${_client_id}&";
+    body += "client_secret=${_client_secret}&";
+    body += "redirect_uri=${Users.redirect_uri}&";
+    body += "grant_type=authorization_code";
     return body;
   }
 
@@ -90,7 +95,7 @@ class YahooOauth2{
     usr.authorizationCode = code;
     usr.vendor = oauth2Vendor.google;
     usr.expires_in = expires_in;
-    //usr.id_token = id_token; // There is no id_token
+    //usr.id_token = id_token; // There is no id_token in yahoo
     return usr;
   }
 

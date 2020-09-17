@@ -5,12 +5,11 @@ import 'package:http/http.dart' as http;
 import '../user-information.dart';
 
 class MicrosoftOAuth2{
-  static String _basedLink = "https://login.microsoftonline.com/common/v2.0/oauth2/token";
+  static String _basedLink = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
   static String _client_id = "0c0b0622-f612-41a6-874c-b5182b5183f1";
-  static String _tenant = "common";
   static String _scope = "email openid profile https://graph.microsoft.com/User.Read";
   static String _client_secret = ".E52-2~MYp_-OSuW9FgRfKurta5JgIlHGN";
-  static String _redirect_url = "http://localhost:8080";
+  static String _redirect_url = Users.redirect_uri;
 
   static String _generateAccessTokenBody(String code){
     String ans = "";
@@ -24,12 +23,12 @@ class MicrosoftOAuth2{
   }
 
   static Future<Map> _getAccessToken(String code) async{
-    http.Response response = await http.post(_basedLink, headers:{
+    http.Response response = await http.post(_basedLink,
+    headers:{
       "Content-Type" : "application/x-www-form-urlencoded",
     },
     body: _generateAccessTokenBody(code)
     );
-
     Map body = jsonDecode(response.body);
     return body;
   }
@@ -49,7 +48,7 @@ class MicrosoftOAuth2{
     http.Response response = await http.post(_basedLink, headers: {
       "Content-Type" : "application/x-www-form-urlencoded",
     },
-    body: _generateAccessTokenBody(usr.authorizationCode)
+    body: _generateRefreshTokenBody(usr)
     );
     Map map = jsonDecode(response.body);
 

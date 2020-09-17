@@ -3,4 +3,5 @@ dependencies:
   http_server: ^0.9.8+3
   http: ^0.12.2
   crypto: ^2.1.5
+  sqlite3: ^0.1.5
 

@@ -15,8 +15,6 @@ class GoogleOauth2{
     },
     body: _getAccessBody(code)
     );
-
-    print(response.body);
     Map body = jsonDecode(response.body);
     return body;
   }
@@ -30,16 +28,19 @@ class GoogleOauth2{
     return body;
   }
 
+  static String _getRefreshBody(UserInformation usr){
+    String body = "client_id=${_client_id}&";
+    body += "client_secret=${_client_secret}&";
+    body += "refresh_token=${usr.refresh_token}&";
+    body += "grant_type=refresh_token";
+    return body;
+  }
+
   static Future<Map> _getRefreshToken(UserInformation usr) async{
     http.Response response = await http.post(_baseLink, headers:{
       "Content-Type" : "application/x-www-form-urlencoded",
     },
-    body: '''
-      client_id=${_client_id}&
-      client_secret=${_client_secret}&
-      refresh_token=${usr.refresh_token}&
-      grant_type=refresh_token
-    '''
+    body: _getRefreshBody(usr)
     );
 
     Map body = jsonDecode(response.body);
@@ -60,7 +61,7 @@ class GoogleOauth2{
     String id_token = accessMap["id_token"];
 
     String basedUrl = "https://people.googleapis.com/v1/people/me";
-    //basedUrl += "?personFields=names,emailAddresses,addresses";
+    basedUrl += "?personFields=names,emailAddresses,addresses";
 
     http.Response response = await http.get(basedUrl, headers: {
       "Authorization" : "Bearer $access_token"
@@ -98,6 +99,16 @@ class GoogleOauth2{
     usr.creationTime = DateTime.now().toUtc();
     usr.expires_in = map["expires_in"];
     usr.access_token = map["access_token"];
+
+    return true;
+  }
+
+  static Future<bool> logout(UserInformation usr) async{
+    await http.post(_revokeLink + "token=" + usr.access_token,
+    headers: {
+      "Content-type": "application/x-www-form-urlencoded"
+    }
+    );
     return true;
   }
 }

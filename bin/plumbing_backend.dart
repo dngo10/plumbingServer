@@ -1,11 +1,14 @@
 import 'dart:io' as io;
 
 import 'Auth2/user-information.dart';
+import 'package:sqlite3/open.dart';
+import 'package:sqlite3/sqlite3.dart';
 
 Future main() async{
   String _host = io.InternetAddress.loopbackIPv4.host;
 
   io.HttpServer server = await io.HttpServer.bind(_host, 4040);
+  print("server running at port: ${server.port}");
   await for (io.HttpRequest request in server){
     handleRequest(request);
   }
@@ -15,17 +18,22 @@ void handleRequest(io.HttpRequest request) async{
   io.HttpResponse response = request.response;
   
   try{
+    response.headers.contentType = io.ContentType.json;
+    response.headers.add("Access-Control-Allow-Origin", "*");
+    response.headers.add("Access-Control-Allow-Methods", "POST,GET,DELETE,PUT,OPTIONS");
     if(request.method == 'POST'){
-      response.headers.contentType = io.ContentType.json;
-      response.headers.add("Access-Control-Allow-Origin", "*");
-      response.headers.add("Access-Control-Allow-Methods", "POST,GET,DELETE,PUT,OPTIONS");
+
       // oauth2 --- check microsoft login
+      print("Post: ${request.connectionInfo.remoteAddress} - Method: ${request.uri.pathSegments.last}");
       if(request.uri.pathSegments.last == "oauth2"){
-        print("get Post request from: ${request.connectionInfo.remoteAddress}");
-        await Users.AddUser(request);
-        response.statusCode = io.HttpStatus.ok;
+        bool result = await Users.AddUser(request);
       }else if(request.uri.pathSegments.last == "logout"){
-        //Implement later
+        bool result = await Users.RemoveUser(request);
+      }
+    }else if(request.method == 'GET'){
+      print("Get: ${request.connectionInfo.remoteAddress} - Method: ${request.uri.pathSegments.last}");
+      if(request.uri.pathSegments.last == "check_user"){
+        await Users.CheckUser(request);
       }
     }
   }catch(e){
@@ -33,6 +41,12 @@ void handleRequest(io.HttpRequest request) async{
   }finally{
     await response.close();
   }
+}
+
+//ADD DATABASE
+void ConnectSqlite(){
+  print('Using sqlite3 ${sqlite3.version}');
+  final db = sqlite3.open("");
 }
 
 //Future<void> main() async{
