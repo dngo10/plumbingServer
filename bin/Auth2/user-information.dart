@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:sqlite3/sqlite3.dart';
+
+import '../DatabaseConnect/SqliteHandle/sqlite-open-close.dart';
+import '../DatabaseConnect/UserConnect/user-connect.dart';
 import 'GoogleAuth2/googleOauth2.dart';
 import 'MicrosoftAuth2/microsoftOauth2.dart';
 
@@ -20,7 +24,7 @@ class Users{
     oauth2Vendor.yahoo: "yahoo"
   };
 
-  static Map<String, UserInformation> usersMap = Map<String, UserInformation>();
+  //static Map<String, UserInformation> usersMap = Map<String, UserInformation>();
 
   static Future<bool>  AddUser(io.HttpRequest request) async{
     io.HttpResponse  reponse = request.response;
@@ -34,8 +38,9 @@ class Users{
     
     UserInformation usr = await  _getUser(vendor, code);
     if(usr != null){
-      usersMap[code] = usr;
-      print(usr.toJson());
+      Database db = await SqliteHelper.openDb();
+      await UserConnect.AddUser(usr, db);
+      await SqliteHelper.closeDb(db);
       reponse.write(usr.toJson());
       return true;
     }
@@ -49,25 +54,27 @@ class Users{
     if(map == null || map.isEmpty || !map.containsKey("code")) return false;
 
     String code = map["code"];
-    if(usersMap != null && usersMap.containsKey(code)){
-      UserInformation usr = usersMap[code];
-      usr.logOut(request);
-      usersMap.remove(code);
+    Database db = SqliteHelper.openDb();
+    UserInformation usr = UserConnect.GetUser(code, db);
+    if(usr != null){
+      await usr.logOut(request);
+      await UserConnect.DeleteUser(code, db);
       Map logOutmap = {
         "status": "ok",
         "message": "removed",
       };
       response.write(jsonEncode(logOutmap));
       response.statusCode = io.HttpStatus.ok;
-      return true;
     }
     Map logOutmap = {
         "status": "error",
         "message": "logout not complete",
     };
+    print(logOutmap);
     response.write(jsonEncode(logOutmap));
     response.statusCode = io.HttpStatus.notFound;
-    return false;
+    await SqliteHelper.closeDb(db);
+    return true;
   }
 
   static Future<UserInformation> _getUser(String vendor, String code) async{
@@ -85,7 +92,10 @@ class Users{
     Map paras = request.uri.queryParameters;
     if(paras != null && paras.containsKey("code")){
       String code = paras["code"];
-      if(usersMap.containsKey(code)){
+      Database db = SqliteHelper.openDb();
+      bool hasUser = UserConnect.HasUser(code, db);
+      SqliteHelper.closeDb(db);
+      if(hasUser){
         Map map ={
           "status": "ok",
           "message": "user found"
