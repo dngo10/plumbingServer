@@ -6,32 +6,32 @@ class DataConnect{
 
   ///Add data to database, and getback the id;
   static int AddData(CommandData data, Database db, DataHeader header){
+    int id;
     if(UserConnect.HasUser(header.code, db)){
-      if(data.id == null){
+      if(header.id == null){
         String sql = "INSERT INTO ${CommandDataGoodie.info} ";
         sql += '(${CommandDataGoodie.command}, ';
         sql += '${CommandDataGoodie.date}, ';
         sql += '${CommandDataGoodie.data}) ';
         sql += 'VALUES (?, ?, ?)';
         db.prepare(sql).execute([
-          data.command,
-          data.date,
-          data.data
+          "\'${data.command}\'",
+          "\'${data.date}\'",
+          "\'${data.data}\'"
         ]);
+        id = db.lastInsertRowId;
       }else{
-        String sql = "UPDATE ${CommandDataGoodie.info} SET ";
-        sql += '${CommandDataGoodie.command} = \"${data.command}\" , '; 
-        sql += '${CommandDataGoodie.date} = \"${data.date.toString()}\", ';
-        sql += '${CommandDataGoodie.data} = \"${data.data}\" ';
-        sql += 'WHERE ${CommandDataGoodie.id} = ${data.id}';
+        String sql = 'UPDATE ${CommandDataGoodie.info} SET ';
+        sql += '${CommandDataGoodie.command} = \'${data.command}\', '; 
+        sql += '${CommandDataGoodie.date} = \'${data.date.toString()}\', ';
+        sql += '${CommandDataGoodie.data} = \'${data.data}\' ';
+        sql += 'WHERE ${CommandDataGoodie.id} = ${header.id};';
         db.execute(sql);
-
-        // Dispose DB always at the end of transaction...   
-        db.dispose();
+        id = header.id;
       }
       /// GET BACK THE ID;
-      /// 
-      int id = db.lastInsertRowId;
+      /// Very important.
+      print(id);
       return id;
     }
     // -1 NOT a valid data OR header.
@@ -51,16 +51,23 @@ class DataConnect{
     return false;
   }
 
-  static CommandData GetData(DataHeader header, Database db){
+  static CommandData GetData(DataHeader header, Database db) {
     if(HasData(header, db)){ // HasData Already check whether there is a user or not
       String sql = "SELECT * FROM ${CommandDataGoodie.info} ";
-            sql += "WHERE ${header.id} = ${CommandDataGoodie.id}";
+            sql += "WHERE ${CommandDataGoodie.id} = ${header.id}";
       Row row = db.select(sql).first;
       CommandData data = CommandData();
       data.id = row[CommandDataGoodie.id];
-      data.date = DateTime.parse(row[CommandDataGoodie.date]);
-      data.data = row[CommandDataGoodie.data];
-      data.command = row[CommandDataGoodie.command];
+      String date = row[CommandDataGoodie.date];
+      
+      data.date = DateTime.parse(date);
+
+      String dataStr = row[CommandDataGoodie.data];
+      data.data = dataStr;
+
+      String commandStr = row[CommandDataGoodie.command];
+      data.command = commandStr;
+
       return data;
     }
     return null;
@@ -118,8 +125,7 @@ class DataHeader{
 
   static DataHeader jsonToDataHeader(String json){
     Map map = jsonDecode(json);
-    if(map.containsKey(idStr) &&
-       map.containsKey(codeStr)
+    if(map.containsKey(codeStr)
     ){
       DataHeader dh = DataHeader();
       dh.id = map[idStr];

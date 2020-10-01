@@ -17,14 +17,14 @@ class UserConnect{
     sql += '${usrGoodie.expires_in}, ';
     sql += '${usrGoodie.vendor}) ';
     sql += 'VALUES (\"${usr.name}\", ';
-    sql += '\"${usr.email}\", ';
-    sql += '\"${usr.authorizationCode}\", '; //
-    sql += '\"${usr.creationTime.toString()}\", ';
-    sql += '\"${usr.access_token}\", ' ; //
-    sql += '\"${usr.refresh_token}\", '; //
-    sql += '\"${usr.id_token}\", '; //
+    sql += '\'${usr.email}\', ';
+    sql += '\'${usr.authorizationCode}\', '; //
+    sql += '\'${usr.creationTime.toString()}\', ';
+    sql += '\'${usr.access_token}\', ' ; //
+    sql += '\'${usr.refresh_token}\', '; //
+    sql += '\'${usr.id_token}\', '; //
     sql += '${usr.expires_in.toString()}, ';
-    sql += '\"${Users.vendorDict[usr.vendor]}\");';
+    sql += '\'${Users.vendorDict[usr.vendor]}\');';
     await db.execute(sql);
     return true;
   }
