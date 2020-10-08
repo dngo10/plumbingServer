@@ -59,8 +59,10 @@ class DataConnect{
       CommandData data = CommandData();
       data.id = row[CommandDataGoodie.id];
       String date = row[CommandDataGoodie.date];
-      
-      data.date = DateTime.parse(date);
+      date = date.trim();
+      date = date.replaceAll('\'', '');
+
+      data.date = DateTime.tryParse(date);
 
       String dataStr = row[CommandDataGoodie.data];
       data.data = dataStr;
@@ -69,6 +71,8 @@ class DataConnect{
       data.command = commandStr;
 
       return data;
+    }else{
+      print("GetData: can't find data or user");
     }
     return null;
   }

@@ -5,8 +5,6 @@ import 'Auth2/user-information.dart';
 import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'DatabaseConnect/DataConnect/data-connect.dart';
-import 'DatabaseConnect/SqliteHandle/sqlite-open-close.dart';
 import 'DatabaseConnect/data-information.dart';
 
 

@@ -17,7 +17,7 @@ enum oauth2Vendor{
 }
 
 class Users{
-  static String redirect_uri = "http://localhost:8080";
+  static String redirect_uri = "https://gouvisgroup.xyz";
   static Map<oauth2Vendor, String> vendorDict = {
     oauth2Vendor.google : "google",
     oauth2Vendor.microsoft : "microsoft",
