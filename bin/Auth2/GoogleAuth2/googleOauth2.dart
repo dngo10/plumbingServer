@@ -9,23 +9,23 @@ class GoogleOauth2{
   static String _client_id = '990439782684-t224hulo9aegba964mqluborhhckhi5r.apps.googleusercontent.com';
   static String _client_secret = "Mjni8nmSayA1A9mrMM9EplJ4";
 
-  static Future<Map> _getAccessToken(String code) async{
+  static Future<Map> _getAccessToken(String code, String redirect_uri) async{
     http.Response response = await http.post(_baseLink, headers: {
       "Content-Type" : "application/x-www-form-urlencoded",
     },
-    body: _getAccessBody(code)
+    body: _getAccessBody(code, redirect_uri)
     );
     print(response.body);
     Map body = jsonDecode(response.body);
     return body;
   }
 
-  static String _getAccessBody(String code){
+  static String _getAccessBody(String code, String redirect_uri){
     String body = "code=${code}&";
     body += "client_id=${_client_id}&";
     body += "client_secret=${_client_secret}&";
     body += "grant_type=authorization_code&";
-    body += "redirect_uri=${Users.redirect_uri}";
+    body += "redirect_uri=${redirect_uri}";
     return body;
   }
 
@@ -48,8 +48,8 @@ class GoogleOauth2{
     return body;
   }
 
-  static Future<UserInformation> GetUserInformation(String code) async{
-    Map accessMap = await _getAccessToken(code);
+  static Future<UserInformation> GetUserInformation(String code, String redirect_uri) async{
+    Map accessMap = await _getAccessToken(code, redirect_uri);
 
     if(accessMap == null || accessMap.isEmpty || !accessMap.containsKey("access_token")){
       print("Can't find access token.");

@@ -6,13 +6,13 @@ import 'package:sqlite3/open.dart';
 
 class SqliteHelper{
     static const String _onWindows = "sqlite3.dll";
-    static const String _onLinux = "sqlite3.so";
-    //static const String _database = "gouvis.db"; // database
-    static const String _database = "/home/ubuntu/server/gouvis.db";
+    
+    static String _database = "/home/ubuntu/server/gouvis.db";
 
     static Database openDb(){
       if(Platform.isWindows){
         open.overrideForAll(_openSqlite);
+        _database = "gouvis.db";
       }
       
       return sqlite3.open(_database);

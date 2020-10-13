@@ -9,54 +9,53 @@ class MicrosoftOAuth2{
   static String _client_id = "0c0b0622-f612-41a6-874c-b5182b5183f1";
   static String _scope = "email openid profile https://graph.microsoft.com/User.Read";
   static String _client_secret = ".E52-2~MYp_-OSuW9FgRfKurta5JgIlHGN";
-  static String _redirect_url = Users.redirect_uri;
 
-  static String _generateAccessTokenBody(String code){
+  static String _generateAccessTokenBody(String code, String redirect_uri){
     String ans = "";
     ans += "grant_type=authorization_code";
     ans += "&client_id=${_client_id}";
-    ans += "&redirect_uri=${_redirect_url}";
+    ans += "&redirect_uri=${redirect_uri}";
     ans += "&scope=${_scope}";
     ans += "&code=${code}";
     ans += "&client_secret=${_client_secret}";
     return ans;
   }
 
-  static Future<Map> _getAccessToken(String code) async{
+  static Future<Map> _getAccessToken(String code, String redirect_uri) async{
     http.Response response = await http.post(_basedLink,
     headers:{
       "Content-Type" : "application/x-www-form-urlencoded",
     },
-    body: _generateAccessTokenBody(code)
+    body: _generateAccessTokenBody(code, redirect_uri)
     );
     Map body = jsonDecode(response.body);
     return body;
   }
 
-  static String _generateRefreshTokenBody(UserInformation usr){
+  static String _generateRefreshTokenBody(UserInformation usr, String redirect_uri){
     String ans = "";
     ans += "grant_type=refresh_token";
     ans += "&client_id=${_client_id}";
-    ans += "&redirect_uri=${_redirect_url}";
+    ans += "&redirect_uri=${redirect_uri}";
     ans += "&scope=${_scope}";
     ans += "&refresh_token=${usr.refresh_token}";
     ans += "&client_secret=${_client_secret}";
     return ans;
   }
 
-  static Future<Map> _getRefreshToken(UserInformation usr) async{
+  static Future<Map> _getRefreshToken(UserInformation usr, String redirect_uri) async{
     http.Response response = await http.post(_basedLink, headers: {
       "Content-Type" : "application/x-www-form-urlencoded",
     },
-    body: _generateRefreshTokenBody(usr)
+    body: _generateRefreshTokenBody(usr, redirect_uri)
     );
     Map map = jsonDecode(response.body);
 
     return map;
   }
 
-  static Future<UserInformation> GetUserInformation(String code) async{
-    Map accessMap = await _getAccessToken(code);
+  static Future<UserInformation> GetUserInformation(String code, String redirect_uri) async{
+    Map accessMap = await _getAccessToken(code, redirect_uri);
 
     if(accessMap == null || accessMap.isEmpty || !accessMap.containsKey("access_token")){
       print("Can't find access token.");
@@ -97,8 +96,8 @@ class MicrosoftOAuth2{
     return usr;
   }
 
-  static Future<bool> refresh_token(UserInformation usr) async{
-    Map map = await _getRefreshToken(usr);
+  static Future<bool> refresh_token(UserInformation usr, String redirect_uri) async{
+    Map map = await _getRefreshToken(usr, redirect_uri);
     if(map == null || map.isEmpty || !map.containsKey("access_token")){
       return false;
     };

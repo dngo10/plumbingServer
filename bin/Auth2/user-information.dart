@@ -8,8 +8,6 @@ import '../DatabaseConnect/UserConnect/user-connect.dart';
 import 'GoogleAuth2/googleOauth2.dart';
 import 'MicrosoftAuth2/microsoftOauth2.dart';
 
-import 'YahooAuth2/yahooOauth2.dart';
-
 enum oauth2Vendor{
   google,
   microsoft,
@@ -17,7 +15,6 @@ enum oauth2Vendor{
 }
 
 class Users{
-  static String redirect_uri = "https://gouvisgroup.xyz";
   static Map<oauth2Vendor, String> vendorDict = {
     oauth2Vendor.google : "google",
     oauth2Vendor.microsoft : "microsoft",
@@ -34,9 +31,10 @@ class Users{
 
     String vendor = map["vendor"];
     String code = map["code"];
+    String redirect_uri = map["redirect_uri"];
     if(vendor == null) return false;
     
-    UserInformation usr = await  _getUser(vendor, code);
+    UserInformation usr = await  _getUser(vendor, code, redirect_uri);
     if(usr != null){
       Database db = await SqliteHelper.openDb();
       await UserConnect.AddUser(usr, db);
@@ -77,13 +75,11 @@ class Users{
     return true;
   }
 
-  static Future<UserInformation> _getUser(String vendor, String code) async{
+  static Future<UserInformation> _getUser(String vendor, String code, String redirect_uri) async{
     if(vendor == "google"){
-      return await GoogleOauth2.GetUserInformation(code);
-    }if(vendor == "yahoo"){
-      return await YahooOauth2.GetUserInformation(code);
+      return await GoogleOauth2.GetUserInformation(code, redirect_uri);
     }if(vendor == "microsoft"){
-      return await MicrosoftOAuth2.GetUserInformation(code);
+      return await MicrosoftOAuth2.GetUserInformation(code, redirect_uri);
     }
     return null;
   }
@@ -131,13 +127,11 @@ class UserInformation{
     return true;
   }
 
-  Future<bool> refreshToken() async{
+  Future<bool> refreshToken(String redirect_uri) async{
     if(vendor == oauth2Vendor.google){
       return await GoogleOauth2.refresh_token(this);
     }else if(vendor == oauth2Vendor.microsoft){
-      return await MicrosoftOAuth2.refresh_token(this);
-    }else if(vendor == oauth2Vendor.yahoo){
-      return await YahooOauth2.refresh_token(this);
+      return await MicrosoftOAuth2.refresh_token(this, redirect_uri);
     }
     return false;
   }
